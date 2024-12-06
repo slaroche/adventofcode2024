@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -e
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../ &> /dev/null && pwd )"
+
+# Check for Go
+if ! go version > /dev/null 2>&1; then
+    echo ""
+    echo "Please install the Go compiler"
+    echo "- https://golang.org/doc/install"
+    echo ""
+    exit 1
+fi
+
+(
+  cd ${DIR}
+  make --silent build/aoc2024
+)
+
+${DIR}/build/aoc2024 "$@"
