@@ -1,50 +1,50 @@
 package main
 
 import (
+	"adventofcode2024/utils"
 	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
+	"log"
 	"os"
-	"strconv"
 	"strings"
 )
-
-type intTuple struct {
-	a, b int
-}
-
-// Context defined which part to run
-type Context struct {
-	part int
-}
-
-func zip(a, b []int) ([]intTuple, error) {
-	if len(a) != len(b) {
-		return nil, fmt.Errorf("zip: arguments must be of same length")
-	}
-
-	r := make([]intTuple, len(a))
-
-	for i, e := range a {
-		r[i] = intTuple{e, b[i]}
-	}
-
-	return r, nil
-}
-
-func diff(a, b int) int {
-	if a > b {
-		return a - b
-	}
-	return b - a
-}
 
 func getDir(a int) int {
 	if a >= 0 {
 		return 1
 	}
 	return -1
+}
+
+func isSafe(report []int) (bool, int) {
+	safe := true
+	dir := 0
+	index := 0
+	for i, lvl := range report[:len(report)-1] {
+		if !safe {
+			continue
+		}
+
+		nextLvl := report[i+1]
+
+		if utils.Diff(lvl, nextLvl) > 3 {
+			safe = false
+		}
+
+		if lvl == nextLvl {
+			safe = false
+		}
+
+		if dir != 0 && dir != getDir(lvl-nextLvl) {
+			safe = false
+		}
+
+		dir = getDir(lvl - nextLvl)
+		index = i
+	}
+	return safe, index
 }
 
 func main() {
@@ -61,13 +61,16 @@ func main() {
 
 	fmt.Println("Running part", part, "with", filename)
 
-	buf, _ := os.ReadFile("day02/" + filename)
-
-	ctx := Context{
-		part: part,
+	buf, err := os.ReadFile("day02/" + filename)
+	if err != nil {
+		log.Fatal("cannot load file")
 	}
 
-	partHandlers := []func(Context, []byte) (int, bool){part1, part2}
+	ctx := utils.Context{
+		Part: part,
+	}
+
+	partHandlers := []func(utils.Context, []byte) (int, bool){part1, part2}
 	for _, handler := range partHandlers {
 		if result, ok := handler(ctx, buf); ok {
 			fmt.Println(result)
@@ -75,8 +78,8 @@ func main() {
 	}
 }
 
-func part1(ctx Context, b []byte) (int, bool) {
-	if ctx.part != 1 {
+func part1(ctx utils.Context, b []byte) (int, bool) {
+	if ctx.Part != 1 {
 		return 0, false
 	}
 
@@ -84,32 +87,9 @@ func part1(ctx Context, b []byte) (int, bool) {
 
 	s := bufio.NewScanner(bytes.NewReader(b))
 	for s.Scan() {
-		safe := true
-		dir := 0
-		report := strings.Split(s.Text(), " ")
-		for i, lvlStr := range report[:len(report)-1] {
-			if !safe {
-				continue
-			}
-
-			currentLvl, _ := strconv.Atoi(lvlStr)
-			nextLvl, _ := strconv.Atoi(report[i+1])
-
-			if diff(currentLvl, nextLvl) > 3 {
-				safe = false
-			}
-
-			if currentLvl == nextLvl {
-				safe = false
-			}
-
-			if dir != 0 && dir != getDir(currentLvl-nextLvl) {
-				safe = false
-			}
-
-			dir = getDir(currentLvl - nextLvl)
-		}
-		if safe {
+		strReport := strings.Split(s.Text(), " ")
+		report, _ := utils.StrSliceToInt(strReport)
+		if safe, _ := isSafe(report); safe {
 			result++
 		}
 	}
@@ -117,24 +97,8 @@ func part1(ctx Context, b []byte) (int, bool) {
 	return result, true
 }
 
-func isSafe(dir, a, b int) bool {
-	if diff(a, b) > 3 {
-		return false
-	}
-
-	if a == b {
-		return false
-	}
-
-	if dir != 0 && dir != getDir(a-b) {
-		return false
-	}
-
-	return true
-}
-
-func part2(ctx Context, b []byte) (int, bool) {
-	if ctx.part != 2 {
+func part2(ctx utils.Context, b []byte) (int, bool) {
+	if ctx.Part != 2 {
 		return 0, false
 	}
 
@@ -143,60 +107,22 @@ func part2(ctx Context, b []byte) (int, bool) {
 	s := bufio.NewScanner(bytes.NewReader(b))
 	for s.Scan() {
 		safe := true
-		dir := 0
-		report := strings.Split(s.Text(), " ")
-		dampenerUsed := false
-		for i := 0; i < len(report)-1; i++ {
-			if !safe {
-				continue
-			}
-
-			currentLvl, _ := strconv.Atoi(report[i])
-			nextLvl, _ := strconv.Atoi(report[i+1])
-
-			safe = isSafe(dir, currentLvl, nextLvl)
-			if safe {
-				dir = getDir(currentLvl - nextLvl)
-			}
-
-			if !safe && !dampenerUsed {
-				safe = true
-				dampenerUsed = true
-
-				if i+2 == len(report) {
-					continue
-				}
-
-				if i == 0 {
-					nextNextLvl, _ := strconv.Atoi(report[i+2])
-					if isSafe(dir, currentLvl, nextNextLvl) {
-						dir = getDir(currentLvl - nextNextLvl)
-						i++
-					} else if isSafe(dir, nextLvl, nextNextLvl) {
-						dir = getDir(nextLvl - nextNextLvl)
-						i++
-					} else {
-						safe = false
-					}
-					continue
-				}
-
-				nextNextLvl, _ := strconv.Atoi(report[i+2])
-				previousLvl, _ := strconv.Atoi(report[i-1])
-				if isSafe(dir, previousLvl, nextLvl) {
-					dir = getDir(previousLvl - nextLvl)
-					i++
-				} else if isSafe(dir, currentLvl, nextNextLvl) {
-					dir = getDir(currentLvl - nextNextLvl)
-					i++
-				} else {
-					safe = false
-				}
-			}
-		}
+		strReport := strings.Split(s.Text(), " ")
+		report, _ := utils.StrSliceToInt(strReport)
+		safe, index := isSafe(report)
 		if safe {
 			result++
+		} else {
+			if safe, _ = isSafe(utils.Remove(report, index)); safe {
+				result++
+			} else if safe, _ = isSafe(utils.Remove(report, index+1)); safe {
+				result++
+			}
 		}
+	}
+	err := s.Err()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return result, true
