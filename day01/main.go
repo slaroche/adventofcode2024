@@ -3,16 +3,21 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
-	"flag"
 )
 
 type intTuple struct {
 	a, b int
+}
+
+// Context defined which part to run
+type Context struct {
+	part int
 }
 
 func zip(a, b []int) ([]intTuple, error) {
@@ -52,19 +57,26 @@ func main() {
 
 	buf, _ := os.ReadFile("day01/" + filename)
 
-	// Part 1
-	s := bufio.NewScanner(bytes.NewReader(buf))
-    fmt.Println(part_1(s))
+	ctx := Context{
+		part: part,
+	}
 
-	// Part 2
-	s = bufio.NewScanner(bytes.NewReader(buf))
-    fmt.Println(part_2(s))
+	partHandlers := []func(Context, []byte) (int, bool){part1, part2}
+	for _, handler := range partHandlers {
+		if result, ok := handler(ctx, buf); ok {
+			fmt.Println(result)
+		}
+	}
 }
 
-func part_1 (s *bufio.Scanner) int {
+func part1(ctx Context, b []byte) (int, bool) {
+	if ctx.part != 1 {
+		return 0, false
+	}
 	list1 := []int{}
 	list2 := []int{}
 
+	s := bufio.NewScanner(bytes.NewReader(b))
 	for s.Scan() {
 		values := strings.Split(s.Text(), "   ")
 		if i, err := strconv.Atoi(values[0]); err == nil {
@@ -84,11 +96,16 @@ func part_1 (s *bufio.Scanner) int {
 		result = result + diff(tuple.a, tuple.b)
 	}
 
-	return result
+	return result, true
 }
 
-func part_2 (s *bufio.Scanner) int {
+func part2(ctx Context, b []byte) (int, bool) {
+	if ctx.part != 2 {
+		return 0, false
+	}
+
 	locationCount := map[int]intTuple{}
+	s := bufio.NewScanner(bytes.NewReader(b))
 	for s.Scan() {
 		values := strings.Split(s.Text(), "   ")
 		location1, _ := strconv.Atoi(values[0])
@@ -103,5 +120,5 @@ func part_2 (s *bufio.Scanner) int {
 		result = result + k*v.a*v.b
 	}
 
-	return result
+	return result, true
 }

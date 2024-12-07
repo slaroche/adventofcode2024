@@ -1,1 +1,13 @@
 # Advent of code 2024
+
+## Usage
+
+example:
+```
+go run day01/main.go -p 1 -e
+```
+
+## Lint
+```
+make lint
+```
