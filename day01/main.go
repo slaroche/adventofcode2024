@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"flag"
 )
 
 type intTuple struct {
@@ -36,12 +37,31 @@ func diff(a, b int) int {
 }
 
 func main() {
+	var part int
+	var input bool
+	flag.IntVar(&part, "p", 1, "part 1 or 2")
+	flag.BoolVar(&input, "e", false, "use example.txt instead of input.txt")
+	flag.Parse()
+
 	filename := "input.txt"
+	if input {
+		filename = "example.txt"
+	}
+
+	fmt.Println("Running part", part, "with", filename)
+
 	buf, _ := os.ReadFile("day01/" + filename)
 
 	// Part 1
 	s := bufio.NewScanner(bytes.NewReader(buf))
+    fmt.Println(part_1(s))
 
+	// Part 2
+	s = bufio.NewScanner(bytes.NewReader(buf))
+    fmt.Println(part_2(s))
+}
+
+func part_1 (s *bufio.Scanner) int {
 	list1 := []int{}
 	list2 := []int{}
 
@@ -57,17 +77,17 @@ func main() {
 	sort.Ints(list1)
 	sort.Ints(list2)
 
-	result1 := 0
-	zip1, _ := zip(list1, list2)
+	result := 0
+	locationZip, _ := zip(list1, list2)
 
-	for _, tuple := range zip1 {
-		result1 = result1 + diff(tuple.a, tuple.b)
+	for _, tuple := range locationZip {
+		result = result + diff(tuple.a, tuple.b)
 	}
-	fmt.Println(result1)
 
-	// Part 2
-	s = bufio.NewScanner(bytes.NewReader(buf))
+	return result
+}
 
+func part_2 (s *bufio.Scanner) int {
 	locationCount := map[int]intTuple{}
 	for s.Scan() {
 		values := strings.Split(s.Text(), "   ")
@@ -78,10 +98,10 @@ func main() {
 		locationCount[location2] = intTuple{locationCount[location2].a, locationCount[location2].b + 1}
 	}
 
-	result2 := 0
+	result := 0
 	for k, v := range locationCount {
-		result2 = result2 + k*v.a*v.b
+		result = result + k*v.a*v.b
 	}
 
-	fmt.Println(result2)
+	return result
 }
