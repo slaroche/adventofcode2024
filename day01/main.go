@@ -11,21 +11,21 @@ import (
 )
 
 type intTuple struct {
-    a, b int
+	a, b int
 }
 
 func zip(a, b []int) ([]intTuple, error) {
-    if len(a) != len(b) {
-        return nil, fmt.Errorf("zip: arguments must be of same length")
-    }
+	if len(a) != len(b) {
+		return nil, fmt.Errorf("zip: arguments must be of same length")
+	}
 
-    r := make([]intTuple, len(a))
+	r := make([]intTuple, len(a))
 
-    for i, e := range a {
-        r[i] = intTuple{e, b[i]}
-    }
+	for i, e := range a {
+		r[i] = intTuple{e, b[i]}
+	}
 
-    return r, nil
+	return r, nil
 }
 
 func diff(a, b int) int {
@@ -64,8 +64,8 @@ func main() {
 		result1 = result1 + diff(tuple.a, tuple.b)
 	}
 	fmt.Println(result1)
-	
-    // Part 2
+
+	// Part 2
 	s = bufio.NewScanner(bytes.NewReader(buf))
 
 	locationCount := map[int]intTuple{}
@@ -79,8 +79,8 @@ func main() {
 	}
 
 	result2 := 0
-	for k, v := range locationCount { 
-		result2 = result2 + k * v.a * v.b
+	for k, v := range locationCount {
+		result2 = result2 + k*v.a*v.b
 	}
 
 	fmt.Println(result2)

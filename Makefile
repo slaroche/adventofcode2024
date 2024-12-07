@@ -1,26 +1,23 @@
 GO_SOURCES := $(shell find . -type f -name '*.go')
 
 .all: \
-	aoc2024
+	hello
 
 .DEFAULT_GOAL := .all
 
-.PHONY: aoc2024
-pyrolite: build/aoc2024
+.PHONY: hello
+hello: build/hello
 
-build/aoc2024: $(GO_SOURCES)
+build/hello: $(GO_SOURCES)
 	go get ./...
-	go build -o build/aoc2024 ./cmd/aoc2024
-
-
-.PHONY: test
-test:
-	go test ./...
+	go build -o build/hello ./cmd/hello
 
 .PHONY: lint
 lint:
+	go fmt ./...
+	goimports -l -w .
+	golint ./...
 	go vet ./...
-	go run honnef.co/go/tools/cmd/staticcheck ./...
 
 .PHONY: clean
 clean:

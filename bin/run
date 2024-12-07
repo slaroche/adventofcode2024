@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../ &> /dev/null && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../ &> /dev/null && pwd )"
 
 # Check for Go
 if ! go version > /dev/null 2>&1; then
@@ -12,9 +12,6 @@ if ! go version > /dev/null 2>&1; then
     exit 1
 fi
 
-(
-  cd ${DIR}
-  make --silent build/aoc2024
-)
+make --silent build/hello
 
-${DIR}/build/aoc2024 "$@"
+${DIR}/build/hello "$@"
